@@ -14,7 +14,7 @@ const router = createRouter({
       }
     },
     {
-      path: '/:folderId',
+      path: '/:folderId*',
       alias: '/:folderId*',
       name: 'folder',
       component: import('../views/Folder.vue'),
@@ -62,17 +62,26 @@ const getCurrentUser = () => {
   })
 }
 
-router.beforeEach(async (to, from, next) => {
+const checkUser = async (to, from, next) => {
   if (to.matched.some((record) => record.meta.auth)) {
-    if (await getCurrentUser()) {
+    const auth = await getCurrentUser();
+    console.log(auth)
+    if (auth) {
       next();
     } else {
       useMainStore().setError('User not authorized')
-      next('/login')
+      next({
+        path: "login",
+        replace: true
+      })
     }
   } else {
     next();
   }
+}
+
+router.beforeEach((to, from, next) => {
+  checkUser(to, from, next);
 });
 
 export default router
